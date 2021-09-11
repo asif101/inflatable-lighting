@@ -1,6 +1,7 @@
 .App {
   text-align: center;
   background-color: #181a1b;
+  color: white;
   height: 100vh;
   display: flex;
   flex-direction: column;
@@ -10,6 +11,12 @@
   background-color: #404040;
 }
 
-.Tab {
+.MuiTab-textColorInherit.Tab {
   color: white;
+}
+
+.TabPanel {
+  flex-grow: 1;
+  justify-content: center;
+  padding: 40px 25px;
 }

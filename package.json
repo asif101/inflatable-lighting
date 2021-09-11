@@ -21,7 +21,7 @@
     "web-vitals": "^1.1.2"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "sudo npx nodemon server production",
     "dev": "npx concurrently -n SERVER,REACT -c gray \"sudo npx nodemon server.js\" \"react-scripts start\"",
     "build": "react-scripts build",
     "test": "react-scripts test",

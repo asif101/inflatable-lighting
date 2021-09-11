@@ -14,29 +14,28 @@ const { consoleColors } = require('./utils/enums')
 const { hexStringToInt } = require('./utils/colors')
 const { rainbow, colorWipe } = require('./utils/patterns')
 
-const NUM_LEDS = 60
+//server initialization
 app.use(cors())
 app.set('port', port)
 app.use(express.static('build'))
 app.get('/', (req, res) => res.sendFile(__dirname + '/index.html'))
 server.listen(port, () => console.log(`Server listening on port ${port}`))
 
+//LED initialization
+const NUM_LEDS = 60
 const channel = neopixels(NUM_LEDS, { stripType: 0x00081000, brightness: 50 })
 const colorArray = channel.array
+let currentPatternInterval = null
+let patternDeltaTime = 1000 / 30
 setTimeout(() => setSolidColor(0x000000), 500)
 
-setInterval(() => {
-    colorWipe.next(colorArray)
-    neopixels.render()
-}, 1000 / 30)
 
-// ---- trap the SIGINT and reset before exit
-process.on('SIGINT', function () {
-    neopixels.reset();
-    process.nextTick(function () { process.exit(0); });
-});
+// switchToPattern(rainbow)
+// setTimeout(() => switchToPattern(colorWipe), 5000)
 
 
+
+//socket handlers
 io.on('connection', socket => {
     console.log(consoleColors.cyan, 'Connected to client!')
     socket.on('setBrightness', brightness => {
@@ -49,9 +48,24 @@ io.on('connection', socket => {
 })
 
 
+// ---- trap the SIGINT and reset before exit
+process.on('SIGINT', function () {
+    neopixels.reset();
+    process.nextTick(function () { process.exit(0); });
+});
+
 function setSolidColor(colorHex) {
     for (let i = 0; i < channel.count; i++) {
         colorArray[i] = colorHex;
     }
     neopixels.render()
+}
+
+function switchToPattern(pattern) {
+    pattern.reset()
+    clearInterval(currentPatternInterval)
+    currentPatternInterval = setInterval(() => {
+        pattern.next(colorArray)
+        neopixels.render()
+    }, patternDeltaTime)
 }

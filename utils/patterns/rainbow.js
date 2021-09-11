@@ -15,6 +15,10 @@ exports.rainbow = (function () {
         }
     }
 
+    module.reset = function() {
+        wheelPosition = 0
+    }
+
     return module
 })()
 

@@ -10,6 +10,11 @@ exports.colorWipe = (function () {
         setArrayNext(pixelData)
     }
 
+    module.reset = function() {
+        position = 0
+        currentColorIndex = 0
+    }
+
     function setArrayNext(pixelData) {
         if(position + 1 > pixelData.length - 1) {
             position = 0

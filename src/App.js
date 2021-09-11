@@ -19,7 +19,7 @@ function App() {
   const [tab, setTab] = useState(0)
 
   useEffect(() => {
-    const port = process.env.NODE_ENV !== 'production' ? 3000 : 3001
+    const port = process.env.NODE_ENV === 'production' ? 3000 : 3001
     socket = io(`http://${window.location.hostname}:${port}`)
     socket.on('connect', () => console.log('Connected to Server!'))
   }, [])
@@ -41,40 +41,38 @@ function App() {
           onChange={(e, v) => setTab(v)}
         >
 
-          <Tab className='Tab' label="General" id={`tab-${0}`} />
-          <Tab className='Tab' label="Item Two" id={`tab-${1}`} />
-          <Tab className='Tab' label="Item Three" id={`tab-${2}`} />
-          <Tab className='Tab' label="Item Four" id={`tab-${3}`} />
+          <Tab className='Tab' label="General Settings" id={`tab-${0}`} />
+          <Tab className='Tab' label="Solid Color" id={`tab-${1}`} />
+          <Tab className='Tab' label="Pattern" id={`tab-${2}`} />
+          <Tab className='Tab' label="Replay System" id={`tab-${3}`} />
         </Tabs>
-        <TabPanel value={tab} index={0}>
-          <div style={{ width: '50%' }}>
-            <Slider
-              valueLabelDisplay="auto"
-              value={brightness}
-              onChange={(e, v) => {
-                if (v !== brightness) {
-                  setBrightness(v)
-                  socket.emit('setBrightness', v)
-                }
-              }}
-            />
-            <SketchPicker
-              disableAlpha={true}
-              color={color}
-              onChangeComplete={color => {
-                setColor(color.hex)
-                socket.emit('setSolidColor', color.hex)
-              }}
-            />
-          </div>
+        <TabPanel className={'TabPanel'} value={tab} index={0}>
+          <Typography>Brightness</Typography>
+          <Slider
+            valueLabelDisplay="auto"
+            value={brightness}
+            onChange={(e, v) => {
+              if (v !== brightness) {
+                setBrightness(v)
+                socket.emit('setBrightness', v)
+              }
+            }}
+          />
         </TabPanel>
-        <TabPanel value={tab} index={1}>
-          Item Two
+        <TabPanel className={'TabPanel'} value={tab} index={1}>
+          <SketchPicker
+            disableAlpha={true}
+            color={color}
+            onChangeComplete={color => {
+              setColor(color.hex)
+              socket.emit('setSolidColor', color.hex)
+            }}
+          />
         </TabPanel>
-        <TabPanel value={tab} index={2}>
+        <TabPanel className={'TabPanel'} value={tab} index={2}>
           Item Three
         </TabPanel>
-        <TabPanel value={tab} index={3}>
+        <TabPanel className={'TabPanel'} value={tab} index={3}>
           Item Four
         </TabPanel>
       </div>
