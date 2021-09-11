@@ -2,23 +2,17 @@ const { rgb2Int } = require('../colors')
 
 exports.rainbow = (function () {
     let module = {}
-    let pixelData = []
     let wheelPosition = 0
 
-    module.init = function (NUM_LEDS) {
-        pixelData = Array(NUM_LEDS).fill(0)
-        setWheelPosition(0)
-    }
-
-    module.next = function () {
-        setWheelPosition((wheelPosition + 1) % 256)
+    module.next = function (pixelData) {
+        setArrayNextRainbow(pixelData)
         return pixelData
     }
 
-    function setWheelPosition(position) {
-        wheelPosition = position
+    function setArrayNextRainbow(pixelData) {
+        wheelPosition = (wheelPosition + 1) % 256
         for (let i = 0; i < pixelData.length; i++) {
-            pixelData[i] = colorwheel((wheelPosition + i) % 256);
+            pixelData[i] = colorwheel(wheelPosition)
         }
     }
 
