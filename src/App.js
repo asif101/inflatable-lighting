@@ -19,7 +19,8 @@ function App() {
   const [tab, setTab] = useState(0)
 
   useEffect(() => {
-    socket = io(`http://${window.location.hostname}:3001`)
+    const port = process.env.NODE_ENV !== 'production' ? 3000 : 3001
+    socket = io(`http://${window.location.hostname}:${port}`)
     socket.on('connect', () => console.log('Connected to Server!'))
   }, [])
 

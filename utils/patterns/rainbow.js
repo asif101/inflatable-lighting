@@ -6,7 +6,6 @@ exports.rainbow = (function () {
 
     module.next = function (pixelData) {
         setArrayNextRainbow(pixelData)
-        return pixelData
     }
 
     function setArrayNextRainbow(pixelData) {

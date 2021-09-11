@@ -12,7 +12,7 @@ const port = nodeEnv === 'production' ? 3000 : 3001
 const io = new Server(server, { cors: { origin: `http://${ip}:3000` } })
 const { consoleColors } = require('./utils/enums')
 const { hexStringToInt } = require('./utils/colors')
-const { rainbow } = require('./utils/patterns')
+const { rainbow, colorWipe } = require('./utils/patterns')
 
 const NUM_LEDS = 60
 app.use(cors())
@@ -25,10 +25,10 @@ const channel = neopixels(NUM_LEDS, { stripType: 0x00081000, brightness: 50 })
 const colorArray = channel.array
 setTimeout(() => setSolidColor(0x000000), 500)
 
-// setInterval(() => {
-//     rainbow.next(colorArray)
-//     neopixels.render()
-// }, 1000 / 60)
+setInterval(() => {
+    colorWipe.next(colorArray)
+    neopixels.render()
+}, 1000 / 30)
 
 // ---- trap the SIGINT and reset before exit
 process.on('SIGINT', function () {
