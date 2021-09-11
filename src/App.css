@@ -1,0 +1,15 @@
+.App {
+  text-align: center;
+  background-color: #181a1b;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.MuiAppBar-colorPrimary.AppBar {
+  background-color: #404040;
+}
+
+.Tab {
+  color: white;
+}
