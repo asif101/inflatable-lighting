@@ -38,7 +38,7 @@ switchToPattern(currentPatternName)
 //socket handlers
 io.on('connection', socket => {
     console.log(consoleColors.cyan, 'Connected to client!')
-    socket.on('getData', (data, callback) => callback({ brightness, currentPatternName, currentSolidColor }))
+    socket.on('getData', (data, callback) => callback({ brightness, currentPatternName, currentSolidColor, patternNames: Object.keys(patterns) }))
     socket.on('setBrightness', b => setBrightness(b))
     socket.on('setSolidColor', hexString => setSolidColor(hexString))
     socket.on('setPattern', patternName => switchToPattern(patternName))
@@ -90,7 +90,7 @@ function clearPattern() {
 
 //expects intArray (eg. [1325653, 2321356 ...]), where int is a representation of hex
 function setPixelsData(inputArr) {
-    if(currentPatternInterval) clearPattern()
+    if (currentPatternInterval) clearPattern()
     for (let i = 0; i < colorArray.length; i++) {
         colorArray[i] = inputArr[i % inputArr.length]
     }

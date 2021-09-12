@@ -21,16 +21,18 @@ function App() {
   const [solidColor, setSolidColor] = useState('#30cc71')
   const [pattern, setPattern] = useState('none')
   const [tab, setTab] = useState(0)
+  const [patternNames, setPatternNames] = useState([])
 
   useEffect(() => {
     const port = process.env.NODE_ENV === 'production' ? 3000 : 3001
     socket = io(`http://${window.location.hostname}:${port}`)
     socket.on('connect', () => {
       console.log('Connected to Server!')
-      socket.emit('getData', null, ({ brightness, currentPatternName, currentSolidColor }) => {
+      socket.emit('getData', null, ({ brightness, currentPatternName, currentSolidColor, patternNames }) => {
         setBrightness(brightness)
         setPattern(currentPatternName)
         if (currentSolidColor) setSolidColor(currentSolidColor)
+        setPatternNames(patternNames)
       })
     })
   }, [])
@@ -91,8 +93,7 @@ function App() {
             }}
           >
             <MenuItem value={'none'}>None</MenuItem>
-            <MenuItem value={'rainbow'}>Rainbow</MenuItem>
-            <MenuItem value={'colorWipe'}>Color Wipe</MenuItem>
+            {patternNames.map(x => <MenuItem key={x} value={x}>{camelToHumanCase(x)}</MenuItem>)}
           </Select>
         </TabPanel>
         <TabPanel className={'TabPanel'} value={tab} index={3}>
@@ -123,4 +124,7 @@ function TabPanel(props) {
   );
 }
 
-
+function camelToHumanCase(text) {
+  const result = text.replace(/([A-Z])/g, " $1");
+  return result.charAt(0).toUpperCase() + result.slice(1);
+}
