@@ -7,6 +7,9 @@ import Typography from '@material-ui/core/Typography'
 import Tabs from '@material-ui/core/Tabs'
 import Tab from '@material-ui/core/Tab'
 import Slider from '@material-ui/core/Slider'
+import MenuItem from '@material-ui/core/MenuItem'
+import Select from '@material-ui/core/Select'
+import InputLabel from '@material-ui/core/InputLabel'
 import { SketchPicker } from 'react-color'
 import './App.css'
 
@@ -16,6 +19,7 @@ function App() {
 
   const [brightness, setBrightness] = useState(50)
   const [color, setColor] = useState('#30cc71')
+  const [pattern, setPattern] = useState('none')
   const [tab, setTab] = useState(0)
 
   useEffect(() => {
@@ -70,7 +74,19 @@ function App() {
           />
         </TabPanel>
         <TabPanel className={'TabPanel'} value={tab} index={2}>
-          Item Three
+          <InputLabel>Pattern</InputLabel>
+          <Select
+            variant='outlined'
+            value={pattern}
+            onChange={e => {
+              setPattern(e.target.value)
+              socket.emit('setPattern', e.target.value)
+            }}
+          >
+            <MenuItem value={'none'}>None</MenuItem>
+            <MenuItem value={'rainbow'}>Rainbow</MenuItem>
+            <MenuItem value={'colorWipe'}>Color Wipe</MenuItem>
+          </Select>
         </TabPanel>
         <TabPanel className={'TabPanel'} value={tab} index={3}>
           Item Four

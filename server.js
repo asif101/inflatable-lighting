@@ -12,7 +12,7 @@ const port = nodeEnv === 'production' ? 3000 : 3001
 const io = new Server(server, { cors: { origin: `http://${ip}:3000` } })
 const { consoleColors } = require('./utils/enums')
 const { hexStringToInt } = require('./utils/colors')
-const { rainbow, colorWipe } = require('./utils/patterns')
+const { patterns } = require('./utils/patterns')
 
 //server initialization
 app.use(cors())
@@ -44,6 +44,15 @@ io.on('connection', socket => {
     })
     socket.on('setSolidColor', hexString => {
         setSolidColor(hexStringToInt(hexString))
+    })
+    socket.on('setPattern', patternName => {
+        if (patternName === 'none') {
+            clearInterval(currentPatternInterval)
+            setSolidColor(0x000000)
+        }
+        if (patterns?.[patternName]) {
+            switchToPattern(patterns[patternName])
+        }
     })
 })
 
