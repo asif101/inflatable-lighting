@@ -63,6 +63,8 @@ process.on('SIGINT', function () {
     process.nextTick(function () { process.exit(0); });
 });
 
+
+//-------in scope helper functions 
 function setSolidColor(colorHex) {
     for (let i = 0; i < channel.count; i++) {
         colorArray[i] = colorHex;
