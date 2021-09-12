@@ -42,6 +42,7 @@ io.on('connection', socket => {
     socket.on('setBrightness', b => setBrightness(b))
     socket.on('setSolidColor', hexString => setSolidColor(hexString))
     socket.on('setPattern', patternName => switchToPattern(patternName))
+    socket.on('setPixels', intArray => setPixelsData(intArray))
 })
 
 
@@ -53,6 +54,7 @@ process.on('SIGINT', function () {
 
 
 //-------in scope helper functions 
+//expects hexstring (eg. '#ff0000')
 function setSolidColor(hexString) {
     clearPattern()
     const colorHex = hexStringToInt(hexString)
@@ -84,6 +86,15 @@ function switchToPattern(patternName) {
 function clearPattern() {
     currentPatternName = 'none'
     clearInterval(currentPatternInterval)
+}
+
+//expects intArray (eg. [1325653, 2321356 ...]), where int is a representation of hex
+function setPixelsData(inputArr) {
+    if(currentPatternInterval) clearPattern()
+    for (let i = 0; i < colorArray.length; i++) {
+        colorArray[i] = inputArr[i % inputArr.length]
+    }
+    neopixels.render()
 }
 
 function setBrightness(b) {
