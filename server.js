@@ -23,60 +23,71 @@ server.listen(port, () => console.log(`Server listening on port ${port}`))
 
 //LED initialization
 const NUM_LEDS = 60
-const channel = neopixels(NUM_LEDS, { stripType: 0x00081000, brightness: 50 })
+let brightness = 20
+const channel = neopixels(NUM_LEDS, { stripType: 0x00081000, brightness })
 const colorArray = channel.array
+let currentSolidColor = null
 let currentPatternInterval = null
+let currentPatternName = Object.keys(patterns)[1] //colorWipe
 let patternDeltaTime = 1000 / 30
-setTimeout(() => setSolidColor(0x000000), 500)
 
-
-// switchToPattern(rainbow)
-// setTimeout(() => switchToPattern(colorWipe), 5000)
+switchToPattern(currentPatternName)
 
 
 
 //socket handlers
 io.on('connection', socket => {
     console.log(consoleColors.cyan, 'Connected to client!')
-    socket.on('setBrightness', brightness => {
-        channel.brightness = brightness
-        neopixels.render()
-    })
-    socket.on('setSolidColor', hexString => {
-        setSolidColor(hexStringToInt(hexString))
-    })
-    socket.on('setPattern', patternName => {
-        if (patternName === 'none') {
-            clearInterval(currentPatternInterval)
-            setSolidColor(0x000000)
-        }
-        if (patterns?.[patternName]) {
-            switchToPattern(patterns[patternName])
-        }
-    })
+    socket.on('getData', (data, callback) => callback({ brightness, currentPatternName, currentSolidColor }))
+    socket.on('setBrightness', b => setBrightness(b))
+    socket.on('setSolidColor', hexString => setSolidColor(hexString))
+    socket.on('setPattern', patternName => switchToPattern(patternName))
 })
 
 
 // ---- trap the SIGINT and reset before exit
 process.on('SIGINT', function () {
-    neopixels.reset();
-    process.nextTick(function () { process.exit(0); });
+    neopixels.reset()
+    process.nextTick(function () { process.exit(0); })
 });
 
 
 //-------in scope helper functions 
-function setSolidColor(colorHex) {
+function setSolidColor(hexString) {
+    clearPattern()
+    const colorHex = hexStringToInt(hexString)
     for (let i = 0; i < channel.count; i++) {
         colorArray[i] = colorHex;
     }
+    currentSolidColor = hexString
     neopixels.render()
 }
 
-function switchToPattern(pattern) {
-    pattern.reset()
+function clearSolidColor() {
+    setSolidColor('#000000')
+}
+
+function switchToPattern(patternName) {
+    clearSolidColor()
+    clearPattern()
+    if (patterns?.[patternName]) {
+        const pattern = patterns[patternName]
+        currentPatternName = patternName
+        pattern.reset()
+        currentPatternInterval = setInterval(() => {
+            pattern.next(colorArray)
+            neopixels.render()
+        }, patternDeltaTime)
+    }
+}
+
+function clearPattern() {
+    currentPatternName = 'none'
     clearInterval(currentPatternInterval)
-    currentPatternInterval = setInterval(() => {
-        pattern.next(colorArray)
-        neopixels.render()
-    }, patternDeltaTime)
+}
+
+function setBrightness(b) {
+    brightness = b
+    channel.brightness = b
+    neopixels.render()
 }

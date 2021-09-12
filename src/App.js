@@ -18,14 +18,21 @@ let socket = null
 function App() {
 
   const [brightness, setBrightness] = useState(50)
-  const [color, setColor] = useState('#30cc71')
+  const [solidColor, setSolidColor] = useState('#30cc71')
   const [pattern, setPattern] = useState('none')
   const [tab, setTab] = useState(0)
 
   useEffect(() => {
     const port = process.env.NODE_ENV === 'production' ? 3000 : 3001
     socket = io(`http://${window.location.hostname}:${port}`)
-    socket.on('connect', () => console.log('Connected to Server!'))
+    socket.on('connect', () => {
+      console.log('Connected to Server!')
+      socket.emit('getData', null, ({ brightness, currentPatternName, currentSolidColor }) => {
+        setBrightness(brightness)
+        setPattern(currentPatternName)
+        if (currentSolidColor) setSolidColor(currentSolidColor)
+      })
+    })
   }, [])
 
   return (
@@ -66,9 +73,9 @@ function App() {
         <TabPanel className={'TabPanel'} value={tab} index={1}>
           <SketchPicker
             disableAlpha={true}
-            color={color}
+            color={solidColor}
             onChangeComplete={color => {
-              setColor(color.hex)
+              setSolidColor(color.hex)
               socket.emit('setSolidColor', color.hex)
             }}
           />
