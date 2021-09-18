@@ -24,7 +24,9 @@ server.listen(port, () => console.log(`Server listening on port ${port}`))
 //LED initialization
 const NUM_LEDS = 60
 let brightness = 20
-const channel = neopixels(NUM_LEDS, { stripType: 0x00081000, brightness })
+// const channel = neopixels(NUM_LEDS, { stripType: 0x00081000, brightness }) //GRB (Neopixel ring, 24 LED?)
+const channel = neopixels(NUM_LEDS, { stripType: 0x00100800, brightness }) //RGB (3W LED)
+// const channel = neopixels(NUM_LEDS, { stripType: 0x18081000, brightness }) //GRBW (Neopixel RGBW)
 const colorArray = channel.array
 let currentSolidColor = null
 let currentPatternInterval = null
