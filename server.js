@@ -10,7 +10,7 @@ const ip = networkInterfaces().wlan0.filter(x => x.family === 'IPv4')[0].address
 const nodeEnv = process.argv[2] || 'development'
 const port = nodeEnv === 'production' ? 3000 : 3001
 const io = new Server(server, { cors: { origin: `http://${ip}:3000` } })
-const { consoleColors } = require('./utils/enums')
+const { consoleColors, stripTypes } = require('./utils/enums')
 const { hexStringToInt } = require('./utils/colors')
 const { patterns } = require('./utils/patterns')
 
@@ -22,12 +22,11 @@ app.get('/', (req, res) => res.sendFile(__dirname + '/index.html'))
 server.listen(port, () => console.log(`Server listening on port ${port}`))
 
 //LED initialization
-const NUM_LEDS = 60
+let numLeds = 60
 let brightness = 20
-// const channel = neopixels(NUM_LEDS, { stripType: 0x00081000, brightness }) //GRB (Neopixel ring, 24 LED?)
-const channel = neopixels(NUM_LEDS, { stripType: 0x00100800, brightness }) //RGB (3W LED)
-// const channel = neopixels(NUM_LEDS, { stripType: 0x18081000, brightness }) //GRBW (Neopixel RGBW)
-const colorArray = channel.array
+let stripType = stripTypes['5V 0.2W RGBW']
+let channel = neopixels(numLeds, { stripType, brightness })
+let colorArray = channel.array
 let currentSolidColor = null
 let currentPatternInterval = null
 let currentPatternName = Object.keys(patterns)[1] //colorWipe
@@ -40,8 +39,9 @@ switchToPattern(currentPatternName)
 //socket handlers
 io.on('connection', socket => {
     console.log(consoleColors.cyan, 'Connected to client!')
-    socket.on('getData', (data, callback) => callback({ brightness, currentPatternName, currentSolidColor, patternNames: Object.keys(patterns) }))
+    socket.on('getData', (data, callback) => callback({ brightness, currentPatternName, currentSolidColor, patternNames: Object.keys(patterns), stripType, stripTypes }))
     socket.on('setBrightness', b => setBrightness(b))
+    socket.on('setStripType', t => setStripType(t))
     socket.on('setSolidColor', hexString => setSolidColor(hexString))
     socket.on('setPattern', patternName => switchToPattern(patternName))
     socket.on('setPixels', intArray => setPixelsData(intArray))
@@ -103,4 +103,10 @@ function setBrightness(b) {
     brightness = b
     channel.brightness = b
     neopixels.render()
+}
+
+function setStripType(type) {
+    stripType = type
+    channel = neopixels(numLeds, { stripType, brightness })
+    colorArray = channel.array
 }

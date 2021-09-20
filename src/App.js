@@ -20,19 +20,23 @@ function App() {
   const [brightness, setBrightness] = useState(50)
   const [solidColor, setSolidColor] = useState('#30cc71')
   const [pattern, setPattern] = useState('none')
-  const [tab, setTab] = useState(0)
   const [patternNames, setPatternNames] = useState([])
+  const [tab, setTab] = useState(0)
+  const [stripType, setStripType] = useState()
+  const [stripTypes, setStripTypes] = useState({})
 
   useEffect(() => {
     const port = process.env.NODE_ENV === 'production' ? 3000 : 3001
     socket = io(`http://${window.location.hostname}:${port}`)
     socket.on('connect', () => {
       console.log('Connected to Server!')
-      socket.emit('getData', null, ({ brightness, currentPatternName, currentSolidColor, patternNames }) => {
+      socket.emit('getData', null, ({ brightness, currentPatternName, currentSolidColor, patternNames, stripType, stripTypes }) => {
         setBrightness(brightness)
         setPattern(currentPatternName)
         if (currentSolidColor) setSolidColor(currentSolidColor)
         setPatternNames(patternNames)
+        setStripTypes(stripTypes)
+        setStripType(stripType)
       })
     })
   }, [])
@@ -60,6 +64,19 @@ function App() {
           <Tab className='Tab' label="Replay System" id={`tab-${3}`} />
         </Tabs>
         <TabPanel className={'TabPanel'} value={tab} index={0}>
+          {stripType && <>
+            <InputLabel>Strip Type</InputLabel>
+            <Select
+              variant='outlined'
+              value={stripType}
+              onChange={e => {
+                setStripType(e.target.value)
+                socket.emit('setStripType', e.target.value)
+              }}
+            >
+              {Object.keys(stripTypes).map(x => <MenuItem key={x} value={stripTypes[x]}>{x}</MenuItem>)}
+            </Select>
+          </>}
           <Typography>Brightness</Typography>
           <Slider
             valueLabelDisplay="auto"
@@ -100,7 +117,7 @@ function App() {
           Item Four
         </TabPanel>
       </div>
-    </div>
+    </div >
   )
 }
 
