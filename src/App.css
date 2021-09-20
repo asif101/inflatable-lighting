@@ -18,5 +18,9 @@
 .TabPanel {
   flex-grow: 1;
   justify-content: center;
-  padding: 40px 25px;
+  padding: 0px 25px;
+}
+
+.TabPanel > div > div {
+  margin: 40px 0;
 }

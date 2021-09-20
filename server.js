@@ -39,12 +39,13 @@ switchToPattern(currentPatternName)
 //socket handlers
 io.on('connection', socket => {
     console.log(consoleColors.cyan, 'Connected to client!')
-    socket.on('getData', (data, callback) => callback({ brightness, currentPatternName, currentSolidColor, patternNames: Object.keys(patterns), stripType, stripTypes }))
+    socket.on('getData', (data, callback) => callback({ brightness, currentPatternName, currentSolidColor, patternNames: Object.keys(patterns), stripType, stripTypes, numLeds }))
     socket.on('setBrightness', b => setBrightness(b))
     socket.on('setStripType', t => setStripType(t))
     socket.on('setSolidColor', hexString => setSolidColor(hexString))
     socket.on('setPattern', patternName => switchToPattern(patternName))
     socket.on('setPixels', intArray => setPixelsData(intArray))
+    socket.on('setNumLeds', leds => setNumLeds(leds))
 })
 
 
@@ -57,8 +58,8 @@ process.on('SIGINT', function () {
 
 //-------in scope helper functions 
 //expects hexstring (eg. '#ff0000')
-function setSolidColor(hexString) {
-    clearPattern()
+function setSolidColor(hexString, shouldClearPattern = true) {
+    if(shouldClearPattern) clearPattern()
     const colorHex = hexStringToInt(hexString)
     for (let i = 0; i < channel.count; i++) {
         colorArray[i] = colorHex;
@@ -107,6 +108,12 @@ function setBrightness(b) {
 
 function setStripType(type) {
     stripType = type
+    channel = neopixels(numLeds, { stripType, brightness })
+    colorArray = channel.array
+}
+
+function setNumLeds(num) {
+    numLeds = num
     channel = neopixels(numLeds, { stripType, brightness })
     colorArray = channel.array
 }
