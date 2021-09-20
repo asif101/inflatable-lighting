@@ -25,6 +25,7 @@ function App() {
   const [stripType, setStripType] = useState()
   const [stripTypes, setStripTypes] = useState({})
   const [numLeds, setNumLeds] = useState(60)
+  const [whiteChannel, setWhiteChannel] = useState(0)
 
   useEffect(() => {
     const port = process.env.NODE_ENV === 'production' ? 3000 : 3001
@@ -102,7 +103,7 @@ function App() {
               min={0}
               max={600}
               marks={[0, 300, 600].map(x => ({ value: x, label: x }))}
-              onChange={(e,v) => setNumLeds(v)}
+              onChange={(e, v) => setNumLeds(v)}
               onChangeCommitted={(e, v) => {
                 setNumLeds(v)
                 socket.emit('setNumLeds', v)
@@ -116,7 +117,20 @@ function App() {
             color={solidColor}
             onChangeComplete={color => {
               setSolidColor(color.hex)
-              socket.emit('setSolidColor', color.hex)
+              socket.emit('setSolidColor', whiteChannel > 0 ? addWhiteChannelToHex(color.hex, whiteChannel) : color.hex)
+            }}
+          />
+          <Typography>White Channel</Typography>
+          <Slider
+            valueLabelDisplay="auto"
+            value={whiteChannel}
+            min={0}
+            max={255}
+            marks={[0, 255].map(x => ({ value: x, label: x }))}
+            onChange={(e, v) => setWhiteChannel(v)}
+            onChangeCommitted={(e, v) => {
+              setWhiteChannel(v)
+              socket.emit('setSolidColor', v > 0 ? addWhiteChannelToHex(solidColor, v) : solidColor)
             }}
           />
         </TabPanel>
@@ -166,4 +180,8 @@ function TabPanel(props) {
 function camelToHumanCase(text) {
   const result = text.replace(/([A-Z])/g, " $1");
   return result.charAt(0).toUpperCase() + result.slice(1);
+}
+
+function addWhiteChannelToHex(hex, whiteChannelInt) {
+  return '#' + whiteChannelInt.toString(16) + hex.split('#')[1]
 }
