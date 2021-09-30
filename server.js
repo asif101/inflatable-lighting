@@ -24,7 +24,7 @@ server.listen(port, () => console.log(`Server listening on port ${port}`))
 //LED initialization
 let numLeds = 60
 let brightness = 20
-let stripType = stripTypes['5V 0.2W RGBW']
+let stripType = stripTypes['24V 0.2W RGB']
 let channel = neopixels(numLeds, { stripType, brightness })
 let colorArray = channel.array
 let currentSolidColor = null
