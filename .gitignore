@@ -5,8 +5,13 @@
 /.pnp
 .pnp.js
 
+#recordings
+recordings/*
+# !/recordings/test
+
 # testing
 /coverage
+test.js
 
 # production
 /build
