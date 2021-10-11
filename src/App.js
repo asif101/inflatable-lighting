@@ -26,13 +26,15 @@ function App() {
   const [stripTypes, setStripTypes] = useState({})
   const [numLeds, setNumLeds] = useState(60)
   const [whiteChannel, setWhiteChannel] = useState(0)
+  const [recordingFileNames, setRecordingFileNames] = useState([])
+  const [recordingThatIsPlaying, setRecordingThatIsPlaying] = useState('')
 
   useEffect(() => {
     const port = process.env.NODE_ENV === 'production' ? 3000 : 3001
     socket = io(`http://${window.location.hostname}:${port}`)
     socket.on('connect', () => {
       console.log('Connected to Server!')
-      socket.emit('getData', null, ({ brightness, currentPatternName, currentSolidColor, patternNames, stripType, stripTypes, numLeds }) => {
+      socket.emit('getData', null, ({ brightness, currentPatternName, currentSolidColor, patternNames, stripType, stripTypes, numLeds, recordingFileNames }) => {
         setBrightness(brightness)
         setPattern(currentPatternName)
         if (currentSolidColor) setSolidColor(currentSolidColor)
@@ -40,6 +42,8 @@ function App() {
         setStripTypes(stripTypes)
         setStripType(stripType)
         setNumLeds(numLeds)
+        console.log(recordingFileNames)
+        setRecordingFileNames(recordingFileNames)
       })
     })
   }, [])
@@ -64,7 +68,7 @@ function App() {
           <Tab className='Tab' label="General Settings" id={`tab-${0}`} />
           <Tab className='Tab' label="Solid Color" id={`tab-${1}`} />
           <Tab className='Tab' label="Pattern" id={`tab-${2}`} />
-          {/* <Tab className='Tab' label="Replay System" id={`tab-${3}`} /> */}
+          <Tab className='Tab' label="Replay System" id={`tab-${3}`} />
         </Tabs>
         <TabPanel className={'TabPanel'} value={tab} index={0}>
           {stripType && <>
@@ -150,8 +154,21 @@ function App() {
             </Select>
           </div>
         </TabPanel>
-        {/* <TabPanel className={'TabPanel'} value={tab} index={3}>
-        </TabPanel> */}
+        <TabPanel className={'TabPanel'} value={tab} index={3}>
+          <div>
+            <InputLabel>Recording</InputLabel>
+            <Select
+              variant='outlined'
+              value={recordingThatIsPlaying}
+              onChange={e => {
+                setRecordingThatIsPlaying(e.target.value)
+                // socket.emit('setStripType', e.target.value)
+              }}
+            >
+              {recordingFileNames.map(x => <MenuItem key={x} value={x}>{x}</MenuItem>)}
+            </Select>
+          </div>
+        </TabPanel>
       </div>
     </div >
   )

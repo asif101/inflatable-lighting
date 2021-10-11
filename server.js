@@ -13,6 +13,7 @@ const io = new Server(server, { cors: { origin: `http://${ip}:3000` } })
 const { consoleColors, stripTypes } = require('./utils/enums')
 const { hexStringToInt } = require('./utils/colors')
 const { patterns } = require('./utils/patterns')
+const { getRecordingFileNames } = require('./utils/playback')
 
 //server initialization
 app.use(cors())
@@ -34,12 +35,10 @@ let patternDeltaTime = 1000 / 30
 
 switchToPattern(currentPatternName)
 
-
-
 //socket handlers
 io.on('connection', socket => {
     console.log(consoleColors.cyan, 'Connected to client!')
-    socket.on('getData', (data, callback) => callback({ brightness, currentPatternName, currentSolidColor, patternNames: Object.keys(patterns), stripType, stripTypes, numLeds }))
+    socket.on('getData', (data, callback) => callback({ brightness, currentPatternName, currentSolidColor, patternNames: Object.keys(patterns), stripType, stripTypes, numLeds, recordingFileNames: getRecordingFileNames() }))
     socket.on('setBrightness', b => setBrightness(b))
     socket.on('setStripType', t => setStripType(t))
     socket.on('setSolidColor', hexString => setSolidColor(hexString))
@@ -59,7 +58,7 @@ process.on('SIGINT', function () {
 //-------in scope helper functions 
 //expects hexstring (eg. '#ff0000')
 function setSolidColor(hexString, shouldClearPattern = true) {
-    if(shouldClearPattern) clearPattern()
+    if (shouldClearPattern) clearPattern()
     const colorHex = hexStringToInt(hexString)
     for (let i = 0; i < channel.count; i++) {
         colorArray[i] = colorHex;
