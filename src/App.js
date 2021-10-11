@@ -42,7 +42,6 @@ function App() {
         setStripTypes(stripTypes)
         setStripType(stripType)
         setNumLeds(numLeds)
-        console.log(recordingFileNames)
         setRecordingFileNames(recordingFileNames)
       })
     })
