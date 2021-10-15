@@ -10,3 +10,10 @@ exports.stripTypes = {
     '5V 3W RGB': 0x00100800,
     '24V 0.2W RGB': 0x00080010
 }
+
+exports.playModes = {
+    SOLID: 'solid',
+    PATTERN: 'pattern',
+    PLAYBACK: 'playback',
+    LIVE: 'live'
+}

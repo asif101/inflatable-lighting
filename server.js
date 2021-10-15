@@ -11,7 +11,7 @@ const ip = networkInterfaces().wlan0.filter(x => x.family === 'IPv4')[0].address
 const nodeEnv = process.argv[2] || 'development'
 const port = nodeEnv === 'production' ? 3000 : 3001
 const io = new Server(server, { cors: { origin: `http://${ip}:3000` } })
-const { consoleColors, stripTypes } = require('./utils/enums')
+const { consoleColors, stripTypes, playModes } = require('./utils/enums')
 const { hexStringToInt } = require('./utils/colors')
 const { patterns } = require('./utils/patterns')
 const { getRecordingFileNames, saveRecording, loadRecording } = require('./utils/playback')
@@ -33,6 +33,7 @@ let currentSolidColor = null
 let currentPatternInterval = null
 let currentPatternName = Object.keys(patterns)[1] //colorWipe
 let deltaTime = 1000 / 30
+let playMode = playModes.pattern
 
 //recording/playback variables
 let recordBuffer = []
@@ -41,23 +42,26 @@ let recordingFileName = null
 let currentPlaybackInterval = null
 let currentPlaybackIndex = 0
 
+playbackRecording('testRecording3.json')
 // switchToPattern(currentPatternName)
 
 //send temperature data
-setInterval(() => {
+function getTemperature() {
     temp.measure((e, temp) => {
         if (e) console.warn(e)
         else {
-            // console.log(temp)
             io.to('reactRoom').emit('temp', temp)
         }
     })
+}
+setInterval(() => {
+    getTemperature()
 }, 5000)
 
 //socket handlers
 io.on('connection', socket => {
 
-    socket.on('getData', (data, callback) => callback({ brightness, currentPatternName, currentSolidColor, patternNames: Object.keys(patterns), stripType, stripTypes, numLeds, recordingFileNames: getRecordingFileNames() }))
+    socket.on('getData', (data, callback) => callback({ brightness, currentPatternName, currentSolidColor, patternNames: Object.keys(patterns), stripType, stripTypes, numLeds, recordingFileNames: getRecordingFileNames(), playMode }))
     socket.on('setBrightness', b => setBrightness(b))
     socket.on('setStripType', t => setStripType(t))
     socket.on('setSolidColor', hexString => setSolidColor(hexString))
@@ -97,9 +101,10 @@ process.on('SIGINT', function () {
 
 //-------in scope helper functions 
 //expects hexstring (eg. '#ff0000')
-function setSolidColor(hexString, shouldClearPattern = true) {
-    if (shouldClearPattern) clearPattern()
-    cancelPlayback()
+function setSolidColor(hexString) {
+    if (playMode = playModes.PATTERN) clearPattern()
+    if (playMode = playModes.PLAYBACK) cancelPlayback()
+    setPlayMode(playModes.SOLID)
     const colorHex = hexStringToInt(hexString)
     for (let i = 0; i < channel.count; i++) {
         colorArray[i] = colorHex;
@@ -116,6 +121,7 @@ function switchToPattern(patternName) {
     cancelPlayback()
     clearSolidColor()
     clearPattern()
+    setPlayMode(playModes.PATTERN)
     if (patterns?.[patternName]) {
         const pattern = patterns[patternName]
         currentPatternName = patternName
@@ -134,8 +140,9 @@ function clearPattern() {
 
 //expects intArray (eg. [1325653, 2321356 ...]), where int is a representation of hex
 function setPixelsData(inputArr) {
-    if (currentPatternInterval) clearPattern()
-    if (currentPlaybackInterval) cancelPlayback()
+    if (playMode = playModes.PATTERN) clearPattern()
+    if (playMode = playModes.PLAYBACK) cancelPlayback()
+    setPlayMode(playModes.LIVE)
     if (isRecording) recordBuffer.push(inputArr)
     for (let i = 0; i < colorArray.length; i++) {
         colorArray[i] = inputArr[i % inputArr.length]
@@ -179,10 +186,9 @@ function setRecordingMetadata({ recording, fileName }) {
     }
 }
 
-playbackRecording('testRecording3.json')
-
 function playbackRecording(fileName) {
     cancelPlayback()
+    setPlayMode(playModes.PLAYBACK)
     loadRecording(fileName).then(data => {
         const recordingArray = data
         if (currentPatternInterval) clearPattern()
@@ -204,4 +210,9 @@ function playbackRecording(fileName) {
 function cancelPlayback() {
     currentPlaybackIndex = 0
     clearInterval(currentPlaybackInterval)
+}
+
+function setPlayMode(mode) {
+    playMode = mode
+    io.to('reactRoom').emit('playMode', playMode)
 }

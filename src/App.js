@@ -28,6 +28,8 @@ function App() {
   const [whiteChannel, setWhiteChannel] = useState(0)
   const [recordingFileNames, setRecordingFileNames] = useState([])
   const [recordingThatIsPlaying, setRecordingThatIsPlaying] = useState('')
+  const [playMode, setPlayMode] = useState()
+  const [temperature, setTemperature] = useState()
 
   useEffect(() => {
     const port = process.env.NODE_ENV === 'production' ? 3000 : 3001
@@ -36,7 +38,7 @@ function App() {
       socket.emit('joinReactRoom', null, success => {
         if (success) console.log('Connected to Server!')
       })
-      socket.emit('getData', null, ({ brightness, currentPatternName, currentSolidColor, patternNames, stripType, stripTypes, numLeds, recordingFileNames }) => {
+      socket.emit('getData', null, ({ brightness, currentPatternName, currentSolidColor, patternNames, stripType, stripTypes, numLeds, recordingFileNames, playMode }) => {
         setBrightness(brightness)
         setPattern(currentPatternName)
         if (currentSolidColor) setSolidColor(currentSolidColor)
@@ -45,9 +47,12 @@ function App() {
         setStripType(stripType)
         setNumLeds(numLeds)
         setRecordingFileNames(recordingFileNames)
+        setPlayMode(playMode)
       })
     })
     socket.on('recordings', recordingFileNames => setRecordingFileNames(recordingFileNames))
+    socket.on('playMode', mode => setPlayMode(mode))
+    socket.on('temp', t => setTemperature(t))
   }, [])
 
   return (
@@ -56,6 +61,9 @@ function App() {
         <Toolbar>
           <Typography variant="h6">
             Inflatable LED Control
+          </Typography>
+          <Typography>
+            Current Mode: {playMode}
           </Typography>
         </Toolbar>
       </AppBar>
@@ -75,6 +83,9 @@ function App() {
         <TabPanel className={'TabPanel'} value={tab} index={0}>
           {stripType && <>
             <div>
+              {temperature && <Typography variant="h6">
+                Controller Temperature: {temperature} °C
+              </Typography>}
               <InputLabel>Strip Type</InputLabel>
               <Select
                 variant='outlined'
