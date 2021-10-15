@@ -23,7 +23,7 @@ app.get('/', (req, res) => res.sendFile(__dirname + '/index.html'))
 server.listen(port, () => console.log(`Server listening on port ${port}`))
 
 //LED initialization
-let numLeds = 100
+let numLeds = 300
 let brightness = 20
 let stripType = stripTypes['24V 0.2W RGB']
 let channel = neopixels(numLeds, { stripType, brightness })
