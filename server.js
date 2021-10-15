@@ -65,6 +65,7 @@ io.on('connection', socket => {
     socket.on('setPixels', intArray => setPixelsData(intArray))
     socket.on('setNumLeds', leds => setNumLeds(leds))
     socket.on('setRecordingMetadata', data => setRecordingMetadata(data))
+    socket.on('playRecording', fileName => playbackRecording(fileName))
     socket.on('joinReactRoom', (data, callback) => {
         socket.join('reactRoom')
         console.log(consoleColors.cyan, 'Connected to React App!')
@@ -181,6 +182,7 @@ function setRecordingMetadata({ recording, fileName }) {
 playbackRecording('testRecording3.json')
 
 function playbackRecording(fileName) {
+    cancelPlayback()
     loadRecording(fileName).then(data => {
         const recordingArray = data
         if (currentPatternInterval) clearPattern()

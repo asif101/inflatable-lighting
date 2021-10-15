@@ -23,6 +23,7 @@
   },
   "scripts": {
     "start": "sudo npx nodemon server production",
+    "app": "react-scripts start",
     "dev": "npx concurrently -n SERVER,REACT -c gray \"sudo npx nodemon server.js\" \"react-scripts start\"",
     "build": "react-scripts build",
     "test": "react-scripts test",

@@ -47,6 +47,7 @@ function App() {
         setRecordingFileNames(recordingFileNames)
       })
     })
+    socket.on('recordings', recordingFileNames => setRecordingFileNames(recordingFileNames))
   }, [])
 
   return (
@@ -163,7 +164,7 @@ function App() {
               value={recordingThatIsPlaying}
               onChange={e => {
                 setRecordingThatIsPlaying(e.target.value)
-                // socket.emit('setStripType', e.target.value)
+                socket.emit('playRecording', e.target.value)
               }}
             >
               {recordingFileNames.map(x => <MenuItem key={x} value={x}>{x}</MenuItem>)}
