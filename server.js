@@ -1,5 +1,6 @@
 const neopixels = require('@gbkwiatt/node-rpi-ws281x-native')
 const { networkInterfaces } = require('os')
+const temp = require("pi-temperature")
 const express = require('express')
 const app = express()
 const cors = require('cors')
@@ -13,7 +14,7 @@ const io = new Server(server, { cors: { origin: `http://${ip}:3000` } })
 const { consoleColors, stripTypes } = require('./utils/enums')
 const { hexStringToInt } = require('./utils/colors')
 const { patterns } = require('./utils/patterns')
-const { getRecordingFileNames } = require('./utils/playback')
+const { getRecordingFileNames, saveRecording } = require('./utils/playback')
 
 //server initialization
 app.use(cors())
@@ -33,6 +34,11 @@ let currentPatternInterval = null
 let currentPatternName = Object.keys(patterns)[1] //colorWipe
 let patternDeltaTime = 1000 / 30
 
+//recording variables
+let recordBuffer = []
+let isRecording = false
+let recordingFileName = null
+
 switchToPattern(currentPatternName)
 
 //socket handlers
@@ -45,6 +51,16 @@ io.on('connection', socket => {
     socket.on('setPattern', patternName => switchToPattern(patternName))
     socket.on('setPixels', intArray => setPixelsData(intArray))
     socket.on('setNumLeds', leds => setNumLeds(leds))
+    socket.on('setRecordingMetadata', data => setRecordingMetadata(data))
+    setInterval(() => {
+        temp.measure((e, temp) => {
+            if (e) console.warn(e)
+            else {
+                // console.log(temp)
+                socket.emit('temp', temp)
+            }
+        })
+    }, 5000)
 })
 
 
@@ -93,6 +109,7 @@ function clearPattern() {
 //expects intArray (eg. [1325653, 2321356 ...]), where int is a representation of hex
 function setPixelsData(inputArr) {
     if (currentPatternInterval) clearPattern()
+    if (isRecording) recordBuffer.push(inputArr)
     for (let i = 0; i < colorArray.length; i++) {
         colorArray[i] = inputArr[i % inputArr.length]
     }
@@ -115,4 +132,20 @@ function setNumLeds(num) {
     numLeds = num
     channel = neopixels(numLeds, { stripType, brightness })
     colorArray = channel.array
+}
+
+function setRecordingMetadata({ recording, fileName }) {
+    if (recording) { //start recording
+        recordBuffer = [] //reset recording buffer
+        isRecording = true
+        console.log('started recording')
+        if (fileName) recordingFileName = fileName
+    }
+    else { //recording is over
+        isRecording = false
+        saveRecording(recordBuffer, recordingFileName).then(name => {
+            console.log(`saved new recording: ${name}`)
+            io.emit('recordings', getRecordingFileNames())
+        })
+    }
 }
