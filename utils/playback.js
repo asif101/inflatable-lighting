@@ -20,6 +20,15 @@ exports.saveRecording = function (data, filename) {
     })
 }
 
-// exports.playRecording = function (fileName) {
+exports.loadRecording = function (filename) {
+    return new Promise((resolve, reject) => {
+        fs.readFile(path.join('./recordings', filename), 'utf8', (e, jsonString) => {
+            if (e) reject(e)
+            else resolve(JSON.parse(jsonString))
+        })
+    })
+}
 
-// }
+exports.playRecording = function (filename) {
+
+}

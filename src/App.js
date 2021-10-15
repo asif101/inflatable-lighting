@@ -33,7 +33,9 @@ function App() {
     const port = process.env.NODE_ENV === 'production' ? 3000 : 3001
     socket = io(`http://${window.location.hostname}:${port}`)
     socket.on('connect', () => {
-      console.log('Connected to Server!')
+      socket.emit('joinReactRoom', null, success => {
+        if (success) console.log('Connected to Server!')
+      })
       socket.emit('getData', null, ({ brightness, currentPatternName, currentSolidColor, patternNames, stripType, stripTypes, numLeds, recordingFileNames }) => {
         setBrightness(brightness)
         setPattern(currentPatternName)
