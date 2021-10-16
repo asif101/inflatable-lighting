@@ -83,20 +83,24 @@ function App() {
         <TabPanel className={'TabPanel'} value={tab} index={0}>
           {stripType && <>
             <div>
-              {temperature && <Typography variant="h6">
-                Controller Temperature: {temperature} °C
-              </Typography>}
-              <InputLabel>Strip Type</InputLabel>
-              <Select
-                variant='outlined'
-                value={stripType}
-                onChange={e => {
-                  setStripType(e.target.value)
-                  socket.emit('setStripType', e.target.value)
-                }}
-              >
-                {Object.keys(stripTypes).map(x => <MenuItem key={x} value={stripTypes[x]}>{x}</MenuItem>)}
-              </Select>
+              <div className='general-settings'>
+                {temperature && <Typography variant="h6">
+                  Controller Temperature: {temperature} °C
+                </Typography>}
+                <div>
+                  <InputLabel>Strip Type</InputLabel>
+                  <Select
+                    variant='outlined'
+                    value={stripType}
+                    onChange={e => {
+                      setStripType(e.target.value)
+                      socket.emit('setStripType', e.target.value)
+                    }}
+                  >
+                    {Object.keys(stripTypes).map(x => <MenuItem key={x} value={stripTypes[x]}>{x}</MenuItem>)}
+                  </Select>
+                </div>
+              </div>
             </div>
           </>}
           <div>

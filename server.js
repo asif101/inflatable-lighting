@@ -60,7 +60,6 @@ setInterval(() => {
 
 //socket handlers
 io.on('connection', socket => {
-
     socket.on('getData', (data, callback) => callback({ brightness, currentPatternName, currentSolidColor, patternNames: Object.keys(patterns), stripType, stripTypes, numLeds, recordingFileNames: getRecordingFileNames(), playMode }))
     socket.on('setBrightness', b => setBrightness(b))
     socket.on('setStripType', t => setStripType(t))
@@ -88,7 +87,7 @@ io.on('connection', socket => {
             }
 
         })
-        callback(true)
+        if(callback) callback(true)
     })
 })
 
