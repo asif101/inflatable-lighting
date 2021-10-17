@@ -41,8 +41,8 @@ let recordingFileName = null
 let currentPlaybackInterval = null
 let currentPlaybackIndex = 0
 
-playbackRecording('testRecording3.json')
-// switchToPattern(currentPatternName)
+// playbackRecording('testRecording3.json')
+switchToPattern(currentPatternName)
 
 //send temperature data
 function getTemperature() {
