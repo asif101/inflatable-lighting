@@ -1,16 +1,15 @@
 const neopixels = require('@gbkwiatt/node-rpi-ws281x-native')
 const { networkInterfaces } = require('os')
-const temp = require("pi-temperature")
 const express = require('express')
 const app = express()
 const cors = require('cors')
 const http = require('http')
 const server = http.createServer(app)
-const { Server } = require("socket.io")
 const ip = networkInterfaces().wlan0.filter(x => x.family === 'IPv4')[0].address
 const nodeEnv = process.argv[2] || 'development'
 const port = nodeEnv === 'production' ? 3000 : 3001
-const io = new Server(server, { cors: { origin: `http://${ip}:3000` } })
+const io = require("socket.io")(server, { cors: { origin: `http://${ip}:3000` } })
+const temp = require("pi-temperature")
 const { consoleColors, stripTypes, playModes } = require('./utils/enums')
 const { hexStringToInt } = require('./utils/colors')
 const { patterns } = require('./utils/patterns')
@@ -87,7 +86,7 @@ io.on('connection', socket => {
             }
 
         })
-        if(callback) callback(true)
+        if (callback) callback(true)
     })
 })
 
