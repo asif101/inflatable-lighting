@@ -1,5 +1,6 @@
 const neopixels = require('@gbkwiatt/node-rpi-ws281x-native')
 const { networkInterfaces } = require('os')
+const temp = require("pi-temperature")
 const express = require('express')
 const app = express()
 const cors = require('cors')
@@ -10,9 +11,10 @@ const ip = networkInterfaces().wlan0.filter(x => x.family === 'IPv4')[0].address
 const nodeEnv = process.argv[2] || 'development'
 const port = nodeEnv === 'production' ? 3000 : 3001
 const io = new Server(server, { cors: { origin: `http://${ip}:3000` } })
-const { consoleColors, stripTypes } = require('./utils/enums')
+const { consoleColors, stripTypes, playModes } = require('./utils/enums')
 const { hexStringToInt } = require('./utils/colors')
 const { patterns } = require('./utils/patterns')
+const { getRecordingFileNames, saveRecording, loadRecording } = require('./utils/playback')
 
 //server initialization
 app.use(cors())
@@ -22,7 +24,7 @@ app.get('/', (req, res) => res.sendFile(__dirname + '/index.html'))
 server.listen(port, () => console.log(`Server listening on port ${port}`))
 
 //LED initialization
-let numLeds = 60
+let numLeds = 300
 let brightness = 20
 let stripType = stripTypes['24V 0.2W RGB']
 let channel = neopixels(numLeds, { stripType, brightness })
@@ -30,24 +32,64 @@ let colorArray = channel.array
 let currentSolidColor = null
 let currentPatternInterval = null
 let currentPatternName = Object.keys(patterns)[1] //colorWipe
-let patternDeltaTime = 1000 / 30
+let deltaTime = 1000 / 30
+let playMode = playModes.pattern
 
-switchToPattern(currentPatternName)
+//recording/playback variables
+let recordBuffer = []
+let isRecording = false
+let recordingFileName = null
+let currentPlaybackInterval = null
+let currentPlaybackIndex = 0
 
+playbackRecording('testRecording3.json')
+// switchToPattern(currentPatternName)
 
+//send temperature data
+function getTemperature() {
+    temp.measure((e, temp) => {
+        if (e) console.warn(e)
+        else {
+            io.to('reactRoom').emit('temp', temp)
+        }
+    })
+}
+setInterval(() => {
+    getTemperature()
+}, 5000)
 
 //socket handlers
 io.on('connection', socket => {
-    console.log(consoleColors.cyan, 'Connected to client!')
-    socket.on('getData', (data, callback) => callback({ brightness, currentPatternName, currentSolidColor, patternNames: Object.keys(patterns), stripType, stripTypes, numLeds }))
+    socket.on('getData', (data, callback) => callback({ brightness, currentPatternName, currentSolidColor, patternNames: Object.keys(patterns), stripType, stripTypes, numLeds, recordingFileNames: getRecordingFileNames(), playMode }))
     socket.on('setBrightness', b => setBrightness(b))
     socket.on('setStripType', t => setStripType(t))
     socket.on('setSolidColor', hexString => setSolidColor(hexString))
     socket.on('setPattern', patternName => switchToPattern(patternName))
     socket.on('setPixels', intArray => setPixelsData(intArray))
     socket.on('setNumLeds', leds => setNumLeds(leds))
-})
+    socket.on('setRecordingMetadata', data => setRecordingMetadata(data))
+    socket.on('playRecording', fileName => playbackRecording(fileName))
+    socket.on('joinReactRoom', (data, callback) => {
+        socket.join('reactRoom')
+        console.log(consoleColors.cyan, 'Connected to React App!')
+        socket.on('disconnect', () => console.log('Disconnected from React app'))
+        callback(true)
+    })
+    socket.on('joinUnityRoom', (data, callback) => {
+        socket.join('unityRoom')
+        console.log(consoleColors.cyan, 'Connected to Unity App!')
+        socket.on('disconnect', () => {
+            console.log('Disconnected from Unity app')
+            if (isRecording) { //unity app disconnected while recording
+                isRecording = false
+                recordingFileName = null
+                recordBuffer = []
+            }
 
+        })
+        if(callback) callback(true)
+    })
+})
 
 // ---- trap the SIGINT and reset before exit
 process.on('SIGINT', function () {
@@ -58,8 +100,10 @@ process.on('SIGINT', function () {
 
 //-------in scope helper functions 
 //expects hexstring (eg. '#ff0000')
-function setSolidColor(hexString, shouldClearPattern = true) {
-    if(shouldClearPattern) clearPattern()
+function setSolidColor(hexString) {
+    if (playMode = playModes.PATTERN) clearPattern()
+    if (playMode = playModes.PLAYBACK) cancelPlayback()
+    setPlayMode(playModes.SOLID)
     const colorHex = hexStringToInt(hexString)
     for (let i = 0; i < channel.count; i++) {
         colorArray[i] = colorHex;
@@ -73,8 +117,10 @@ function clearSolidColor() {
 }
 
 function switchToPattern(patternName) {
+    cancelPlayback()
     clearSolidColor()
     clearPattern()
+    setPlayMode(playModes.PATTERN)
     if (patterns?.[patternName]) {
         const pattern = patterns[patternName]
         currentPatternName = patternName
@@ -82,7 +128,7 @@ function switchToPattern(patternName) {
         currentPatternInterval = setInterval(() => {
             pattern.next(colorArray)
             neopixels.render()
-        }, patternDeltaTime)
+        }, deltaTime)
     }
 }
 
@@ -93,7 +139,10 @@ function clearPattern() {
 
 //expects intArray (eg. [1325653, 2321356 ...]), where int is a representation of hex
 function setPixelsData(inputArr) {
-    if (currentPatternInterval) clearPattern()
+    if (playMode = playModes.PATTERN) clearPattern()
+    if (playMode = playModes.PLAYBACK) cancelPlayback()
+    setPlayMode(playModes.LIVE)
+    if (isRecording) recordBuffer.push(inputArr)
     for (let i = 0; i < colorArray.length; i++) {
         colorArray[i] = inputArr[i % inputArr.length]
     }
@@ -116,4 +165,53 @@ function setNumLeds(num) {
     numLeds = num
     channel = neopixels(numLeds, { stripType, brightness })
     colorArray = channel.array
+}
+
+function setRecordingMetadata({ recording, fileName }) {
+    if (recording) { //start recording
+        recordBuffer = [] //reset recording buffer
+        isRecording = true
+        console.log('started recording')
+        if (fileName) recordingFileName = fileName
+    }
+    else { //recording is over
+        isRecording = false
+        if (recordBuffer.length > 0) {
+            saveRecording(recordBuffer, recordingFileName).then(name => {
+                console.log(`saved new recording: ${name}`)
+                io.to('reactRoom').emit('recordings', getRecordingFileNames())
+            })
+        }
+    }
+}
+
+function playbackRecording(fileName) {
+    cancelPlayback()
+    setPlayMode(playModes.PLAYBACK)
+    loadRecording(fileName).then(data => {
+        const recordingArray = data
+        if (currentPatternInterval) clearPattern()
+
+        currentPlaybackIndex = 0
+        currentPlaybackInterval = setInterval(() => {
+            if (currentPlaybackIndex >= recordingArray.length) currentPlaybackIndex = 0
+            for (let i = 0; i < colorArray.length; i++) {
+                colorArray[i] = recordingArray[currentPlaybackIndex][i % recordingArray[currentPlaybackIndex].length]
+            }
+            neopixels.render()
+            currentPlaybackIndex++
+
+        }, deltaTime)
+
+    }).catch(e => console.warn(e))
+}
+
+function cancelPlayback() {
+    currentPlaybackIndex = 0
+    clearInterval(currentPlaybackInterval)
+}
+
+function setPlayMode(mode) {
+    playMode = mode
+    io.to('reactRoom').emit('playMode', playMode)
 }

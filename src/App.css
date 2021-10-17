@@ -11,6 +11,17 @@
   background-color: #404040;
 }
 
+
+.MuiAppBar-colorPrimary.AppBar > .MuiToolbar-root {
+  justify-content: space-between;
+}
+
+.general-settings {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
 .MuiTab-textColorInherit.Tab {
   color: white;
 }
