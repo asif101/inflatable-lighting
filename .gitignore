@@ -9,6 +9,9 @@
 recordings/*
 # !/recordings/test
 
+#resurrect
+resurrect.json
+
 # testing
 /coverage
 test.js

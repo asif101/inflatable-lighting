@@ -29,6 +29,6 @@ exports.loadRecording = function (filename) {
     })
 }
 
-exports.playRecording = function (filename) {
-
+exports.doesRecordingExist = function(filename) {
+    return fs.existsSync(path.join('./recordings', filename))
 }

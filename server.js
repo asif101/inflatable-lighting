@@ -13,7 +13,8 @@ const temp = require("pi-temperature")
 const { consoleColors, stripTypes, playModes } = require('./utils/enums')
 const { hexStringToInt } = require('./utils/colors')
 const { patterns } = require('./utils/patterns')
-const { getRecordingFileNames, saveRecording, loadRecording } = require('./utils/playback')
+const { getRecordingFileNames, saveRecording, loadRecording, doesRecordingExist } = require('./utils/playback')
+const { saveState, loadState } = require('./utils/resurrect')
 
 //server initialization
 app.use(cors())
@@ -30,7 +31,7 @@ let channel = neopixels(numLeds, { stripType, brightness })
 let colorArray = channel.array
 let currentSolidColor = null
 let currentPatternInterval = null
-let currentPatternName = Object.keys(patterns)[1] //colorWipe
+let currentPatternName = null
 let deltaTime = 1000 / 30
 let playMode = playModes.pattern
 
@@ -41,8 +42,7 @@ let recordingFileName = null
 let currentPlaybackInterval = null
 let currentPlaybackIndex = 0
 
-// playbackRecording('testRecording3.json')
-switchToPattern(currentPatternName)
+resurrectState()
 
 //send temperature data
 function getTemperature() {
@@ -103,6 +103,7 @@ function setSolidColor(hexString) {
     if (playMode = playModes.PATTERN) clearPattern()
     if (playMode = playModes.PLAYBACK) cancelPlayback()
     setPlayMode(playModes.SOLID)
+    saveState(playModes.SOLID, hexString)
     const colorHex = hexStringToInt(hexString)
     for (let i = 0; i < channel.count; i++) {
         colorArray[i] = colorHex;
@@ -124,6 +125,7 @@ function switchToPattern(patternName) {
         const pattern = patterns[patternName]
         currentPatternName = patternName
         pattern.reset()
+        saveState(playModes.PATTERN, patternName)
         currentPatternInterval = setInterval(() => {
             pattern.next(colorArray)
             neopixels.render()
@@ -191,6 +193,7 @@ function playbackRecording(fileName) {
         const recordingArray = data
         if (currentPatternInterval) clearPattern()
 
+        saveState(playModes.PLAYBACK, fileName)
         currentPlaybackIndex = 0
         currentPlaybackInterval = setInterval(() => {
             if (currentPlaybackIndex >= recordingArray.length) currentPlaybackIndex = 0
@@ -213,4 +216,29 @@ function cancelPlayback() {
 function setPlayMode(mode) {
     playMode = mode
     io.to('reactRoom').emit('playMode', playMode)
+}
+
+function resurrectState() {
+    loadState().then(({playMode, data}) => {
+        switch (playMode) {
+            case playModes.SOLID:
+                setSolidColor(data)
+                break;
+            case playModes.PATTERN:
+                if(Object.keys(pattern).includes(data)) switchToPattern(data)
+                else playDefault()
+                break;
+            case playModes.PLAYBACK:
+                if(doesRecordingExist(data)) playbackRecording(data)
+                else playDefault()
+                break;
+            default:
+                playDefault()
+                break;
+        }
+    }).catch(e => playDefault())
+
+    function playDefault() {
+        switchToPattern(Object.keys(patterns)[1]) //colorWipe
+    }
 }

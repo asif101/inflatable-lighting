@@ -1,6 +1,7 @@
 {
     "ignore": [
         "src/*",
-        "recordings/*"
+        "recordings/*",
+        "resurrect.json"
     ]
 }
