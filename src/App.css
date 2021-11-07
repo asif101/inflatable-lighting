@@ -35,3 +35,18 @@
 .TabPanel > div > div {
   margin: 40px 0;
 }
+
+.pixel-preview-container {
+  display: flex;
+  flex-wrap: wrap;
+  width: 80vw;
+  background-color: #404040;
+}
+
+.pixel-preview {
+  width: 15px;
+  height: 15px;
+  margin: 1px;
+  border-radius: 50%;
+  background-color: black;
+}

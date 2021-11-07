@@ -30,6 +30,7 @@ function App() {
   const [recordingThatIsPlaying, setRecordingThatIsPlaying] = useState('')
   const [playMode, setPlayMode] = useState()
   const [temperature, setTemperature] = useState()
+  const [pixelData, setPixelData] = useState(Array(300).fill(0))
 
   useEffect(() => {
     const port = process.env.NODE_ENV === 'production' ? 3000 : 3001
@@ -53,6 +54,11 @@ function App() {
     socket.on('recordings', recordingFileNames => setRecordingFileNames(recordingFileNames))
     socket.on('playMode', mode => setPlayMode(mode))
     socket.on('temp', t => setTemperature(t))
+    socket.on('pixelData', d => {
+      // console.log(d)
+      // console.log(d[0].toString(16))
+      setPixelData(d)
+    })
   }, [])
 
   return (
@@ -79,6 +85,7 @@ function App() {
           <Tab className='Tab' label="Solid Color" id={`tab-${1}`} />
           <Tab className='Tab' label="Pattern" id={`tab-${2}`} />
           <Tab className='Tab' label="Replay System" id={`tab-${3}`} />
+          <Tab className='Tab' label="Pixel Preview" id={`tab-${4}`} />
         </Tabs>
         <TabPanel className={'TabPanel'} value={tab} index={0}>
           {stripType && <>
@@ -184,6 +191,12 @@ function App() {
             >
               {recordingFileNames.map(x => <MenuItem key={x} value={x}>{x}</MenuItem>)}
             </Select>
+          </div>
+        </TabPanel>
+        <TabPanel className={'TabPanel'} value={tab} index={4}>
+          <Typography>Pixel Preview</Typography>
+          <div className='pixel-preview-container'>
+            {pixelData.map((d, i) => <div key={i} className='pixel-preview' style={{ backgroundColor: '#' + d.toString(16) }} />)}
           </div>
         </TabPanel>
       </div>
