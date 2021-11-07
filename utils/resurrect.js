@@ -12,7 +12,14 @@ exports.loadState = function() {
     return new Promise((resolve, reject) => {
         fs.readFile('./resurrect.json', 'utf8', (e, jsonString) => {
             if (e) reject(e)
-            else resolve(JSON.parse(jsonString))
+            else {
+               try {
+                  resolve(JSON.parse(jsonString))
+               }
+               catch(err) {
+                  reject(err)
+               }
+            }
         })
     })
 }
