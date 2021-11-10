@@ -15,6 +15,7 @@ const { hexStringToInt } = require('../utils/colors')
 const { patterns } = require('../utils/patterns')
 const { getRecordingFileNames, saveRecording, loadRecording, doesRecordingExist } = require('../utils/playback')
 const { saveState, loadState } = require('../utils/resurrect')
+const { parse } = require('path')
 
 //server initialization
 app.use(cors())
@@ -67,8 +68,9 @@ io.on('connection', socket => {
     socket.on('setStripType', t => setStripType(t))
     socket.on('setSolidColor', hexString => setSolidColor(hexString))
     socket.on('setPattern', patternName => switchToPattern(patternName))
-    socket.on('setPixels', intArray => {
+    socket.on('setPixels', stringArray => {
         // console.log(socket.id)
+        const intArray = stringArray.map(x => parseInt(x))
         setPixelsData(intArray)
         io.to('reactRoom').emit('pixelData', intArray)
     })

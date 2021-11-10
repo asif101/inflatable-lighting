@@ -57,6 +57,7 @@ function App() {
     socket.on('pixelData', d => {
       // console.log(d)
       // console.log(d[0].toString(16))
+      console.log(d.map(x => ({int: x, hex: x.toString(16).padStart(6, "0")})))
       setPixelData(d)
     })
   }, [])
@@ -196,7 +197,7 @@ function App() {
         <TabPanel className={'TabPanel'} value={tab} index={4}>
           <Typography>Pixel Preview</Typography>
           <div className='pixel-preview-container'>
-            {pixelData.map((d, i) => <div key={i} className='pixel-preview' style={{ backgroundColor: '#' + d.toString(16) }} />)}
+            {pixelData.map((d, i) => <div key={i} className='pixel-preview' style={{ backgroundColor: '#' + d.toString(16).padStart(6, "0") }} />)}
           </div>
         </TabPanel>
       </div>
