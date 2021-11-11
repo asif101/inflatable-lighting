@@ -6,11 +6,11 @@ import Toolbar from '@material-ui/core/Toolbar'
 import Typography from '@material-ui/core/Typography'
 import Tabs from '@material-ui/core/Tabs'
 import Tab from '@material-ui/core/Tab'
-import Slider from '@material-ui/core/Slider'
+// import Slider from '@material-ui/core/Slider'
 import MenuItem from '@material-ui/core/MenuItem'
 import Select from '@material-ui/core/Select'
 import InputLabel from '@material-ui/core/InputLabel'
-import { SketchPicker } from 'react-color'
+// import { SketchPicker } from 'react-color'
 import './App.css'
 
 let socket = null
@@ -57,7 +57,7 @@ function App() {
     socket.on('pixelData', d => {
       // console.log(d)
       // console.log(d[0].toString(16))
-      console.log(d.map(x => ({int: x, hex: x.toString(16).padStart(6, "0")})))
+      // console.log(d.map(x => ({int: x, hex: x.toString(16).padStart(6, "0")})))
       setPixelData(d)
     })
   }, [])
@@ -83,8 +83,8 @@ function App() {
         >
 
           <Tab className='Tab' label="General Settings" id={`tab-${0}`} />
-          <Tab className='Tab' label="Solid Color" id={`tab-${1}`} />
-          <Tab className='Tab' label="Pattern" id={`tab-${2}`} />
+          {/* <Tab className='Tab' label="Solid Color" id={`tab-${1}`} /> */}
+          {/* <Tab className='Tab' label="Pattern" id={`tab-${2}`} /> */}
           <Tab className='Tab' label="Replay System" id={`tab-${3}`} />
           <Tab className='Tab' label="Pixel Preview" id={`tab-${4}`} />
         </Tabs>
@@ -95,7 +95,7 @@ function App() {
                 {temperature && <Typography variant="h6">
                   Controller Temperature: {temperature} °C
                 </Typography>}
-                <div>
+                {/* <div>
                   <InputLabel>Strip Type</InputLabel>
                   <Select
                     variant='outlined'
@@ -107,11 +107,11 @@ function App() {
                   >
                     {Object.keys(stripTypes).map(x => <MenuItem key={x} value={stripTypes[x]}>{x}</MenuItem>)}
                   </Select>
-                </div>
+                </div> */}
               </div>
             </div>
           </>}
-          <div>
+          {/* <div>
             <Typography>Brightness</Typography>
             <Slider
               valueLabelDisplay="auto"
@@ -138,9 +138,9 @@ function App() {
                 socket.emit('setNumLeds', v)
               }}
             />
-          </div>
+          </div> */}
         </TabPanel>
-        <TabPanel className={'TabPanel'} value={tab} index={1}>
+        {/* <TabPanel className={'TabPanel'} value={tab} index={1}>
           <SketchPicker
             disableAlpha={true}
             color={solidColor}
@@ -162,8 +162,8 @@ function App() {
               socket.emit('setSolidColor', v > 0 ? addWhiteChannelToHex(solidColor, v) : solidColor)
             }}
           />
-        </TabPanel>
-        <TabPanel className={'TabPanel'} value={tab} index={2}>
+        </TabPanel> */}
+        {/* <TabPanel className={'TabPanel'} value={tab} index={2}>
           <div>
             <InputLabel>Pattern</InputLabel>
             <Select
@@ -178,7 +178,7 @@ function App() {
               {patternNames.map(x => <MenuItem key={x} value={x}>{camelToHumanCase(x)}</MenuItem>)}
             </Select>
           </div>
-        </TabPanel>
+        </TabPanel> */}
         <TabPanel className={'TabPanel'} value={tab} index={3}>
           <div>
             <InputLabel>Recording</InputLabel>
