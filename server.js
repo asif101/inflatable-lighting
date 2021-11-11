@@ -64,7 +64,11 @@ io.on('connection', socket => {
     socket.on('setStripType', t => setStripType(t))
     socket.on('setSolidColor', hexString => setSolidColor(hexString))
     socket.on('setPattern', patternName => switchToPattern(patternName))
-    socket.on('setPixels', intArray => setPixelsData(intArray))
+    socket.on('setPixels', stringArray => {
+        const intArray = stringArray.map(x => parseInt(x))
+        setPixelsData(intArray)
+        io.to('reactRoom').emit('pixelData', intArray)
+    })
     socket.on('setNumLeds', leds => setNumLeds(leds))
     socket.on('setRecordingMetadata', data => setRecordingMetadata(data))
     socket.on('playRecording', fileName => playbackRecording(fileName))
