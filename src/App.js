@@ -85,8 +85,8 @@ function App() {
           <Tab className='Tab' label="General Settings" id={`tab-${0}`} />
           {/* <Tab className='Tab' label="Solid Color" id={`tab-${1}`} /> */}
           {/* <Tab className='Tab' label="Pattern" id={`tab-${2}`} /> */}
-          <Tab className='Tab' label="Replay System" id={`tab-${3}`} />
-          <Tab className='Tab' label="Pixel Preview" id={`tab-${4}`} />
+          <Tab className='Tab' label="Replay System" id={`tab-${1}`} />
+          <Tab className='Tab' label="Pixel Preview" id={`tab-${2}`} />
         </Tabs>
         <TabPanel className={'TabPanel'} value={tab} index={0}>
           {stripType && <>
@@ -179,7 +179,7 @@ function App() {
             </Select>
           </div>
         </TabPanel> */}
-        <TabPanel className={'TabPanel'} value={tab} index={3}>
+        <TabPanel className={'TabPanel'} value={tab} index={1}>
           <div>
             <InputLabel>Recording</InputLabel>
             <Select
@@ -194,7 +194,7 @@ function App() {
             </Select>
           </div>
         </TabPanel>
-        <TabPanel className={'TabPanel'} value={tab} index={4}>
+        <TabPanel className={'TabPanel'} value={tab} index={2}>
           <Typography>Pixel Preview</Typography>
           <div className='pixel-preview-container'>
             {pixelData.map((d, i) => <div key={i} className='pixel-preview' style={{ backgroundColor: '#' + d.toString(16).padStart(6, "0") }} />)}
